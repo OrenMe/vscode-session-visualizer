@@ -1,0 +1,43 @@
+:root {
+  --background: var(--vscode-editor-background);
+  --foreground: var(--vscode-editor-foreground);
+  --input-background: var(--vscode-input-background);
+  --input-border: var(--vscode-input-border);
+  --button-background: var(--vscode-button-background);
+  --button-foreground: var(--vscode-button-foreground);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--vscode-font-family);
+  margin: 0;
+  padding: 0;
+}
+
+.react-flow {
+  background: var(--background) !important;
+}
+
+.react-flow__edge-path {
+  stroke: var(--foreground);
+}
+
+.react-flow__handle {
+  background: var(--vscode-activityBar-background, #333);
+}
+
+.react-flow__minimap {
+  background: var(--background);
+}
+
+.react-flow__controls-button {
+  background: var(--input-background, #3c3c3c);
+  color: var(--foreground);
+  border: 1px solid var(--input-border, #555);
+}
+
+.react-flow__controls-button:hover {
+  background: var(--button-background);
+  color: var(--button-foreground);
+}

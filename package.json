@@ -1,0 +1,197 @@
+{
+  "name": "chat-workflow-viewer",
+  "displayName": "Chat Session Workflow Viewer",
+  "description": "Visualize VS Code chat session workflows as interactive diagrams",
+  "version": "0.1.0",
+  "publisher": "orenmelamed",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Visualization"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "chatWorkflowExplorer",
+          "title": "Chat Workflow Explorer",
+          "icon": "$(type-hierarchy)"
+        }
+      ]
+    },
+    "views": {
+      "chatWorkflowExplorer": [
+        {
+          "id": "chatSessionList",
+          "name": "Chat Sessions"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "chatWorkflow.filterMenu",
+        "label": "Filter Sessions",
+        "icon": "$(filter)"
+      }
+    ],
+    "commands": [
+      {
+        "command": "chatWorkflow.openDiagram",
+        "title": "Open Workflow Diagram",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "chatWorkflow.refresh",
+        "title": "Refresh Sessions",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "chatWorkflow.showMetadata",
+        "title": "Show Session Metadata",
+        "icon": "$(info)"
+      },
+      {
+        "command": "chatWorkflow.openRawFile",
+        "title": "Open Raw Session File",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "chatWorkflow.filterCurrentWorkspace",
+        "title": "Show Current Workspace Only",
+        "icon": "$(folder)"
+      },
+      {
+        "command": "chatWorkflow.filterAllSessions",
+        "title": "Show All Sessions",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "chatWorkflow.toggleShowEmpty",
+        "title": "Show Empty Sessions"
+      },
+      {
+        "command": "chatWorkflow.resetFilters",
+        "title": "Reset Filters"
+      },
+      {
+        "command": "chatWorkflow.search",
+        "title": "Search Sessions",
+        "icon": "$(search)"
+      },
+      {
+        "command": "chatWorkflow.clearSearch",
+        "title": "Clear Search",
+        "icon": "$(search-stop)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "chatWorkflow.search",
+          "when": "view == chatSessionList && !chatWorkflow.searchActive",
+          "group": "navigation@1"
+        },
+        {
+          "command": "chatWorkflow.clearSearch",
+          "when": "view == chatSessionList && chatWorkflow.searchActive",
+          "group": "navigation@1"
+        },
+        {
+          "submenu": "chatWorkflow.filterMenu",
+          "when": "view == chatSessionList",
+          "group": "navigation@2"
+        },
+        {
+          "command": "chatWorkflow.refresh",
+          "when": "view == chatSessionList",
+          "group": "navigation@3"
+        }
+      ],
+      "chatWorkflow.filterMenu": [
+        {
+          "command": "chatWorkflow.filterCurrentWorkspace",
+          "when": "chatWorkflow.hasWorkspace",
+          "group": "1_scope",
+          "toggled": "chatWorkflow.sessionScope == 'current'"
+        },
+        {
+          "command": "chatWorkflow.filterAllSessions",
+          "group": "1_scope",
+          "toggled": "chatWorkflow.sessionScope == 'all'"
+        },
+        {
+          "command": "chatWorkflow.toggleShowEmpty",
+          "group": "2_empty",
+          "toggled": "chatWorkflow.showEmptySessions"
+        },
+        {
+          "command": "chatWorkflow.resetFilters",
+          "group": "3_reset"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "chatWorkflow.openDiagram",
+          "when": "view == chatSessionList && viewItem == chatSession",
+          "group": "1_modification@1"
+        },
+        {
+          "command": "chatWorkflow.showMetadata",
+          "when": "view == chatSessionList && viewItem == chatSession",
+          "group": "1_modification@2"
+        },
+        {
+          "command": "chatWorkflow.openRawFile",
+          "when": "view == chatSessionList && viewItem == chatSession",
+          "group": "1_modification@3"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Chat Workflow Viewer",
+      "properties": {
+        "chatWorkflow.sessionStoragePath": {
+          "type": "string",
+          "default": "",
+          "description": "Manual override for the chat sessions storage path"
+        },
+        "chatWorkflow.sortBy": {
+          "type": "string",
+          "enum": [
+            "date",
+            "title"
+          ],
+          "default": "date",
+          "description": "Sort sessions by date or title"
+        },
+        "chatWorkflow.autoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-refresh session list on file changes"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/vscode": "^1.109.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "@dagrejs/dagre": "^1.1.4",
+    "@xyflow/react": "^12.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
