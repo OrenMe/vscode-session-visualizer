@@ -65,8 +65,13 @@ export function extractMetadata(
       lastMessage = msg;
     }
 
-    if (req.usage?.totalTokens) {
-      totalTokens += req.usage.totalTokens;
+    // Token usage — prefer result.usage, fall back to req.usage
+    const usage = req.result?.usage || req.usage;
+    if (usage) {
+      const total = usage.totalTokens ?? ((usage.promptTokens ?? 0) + (usage.completionTokens ?? 0));
+      if (total) {
+        totalTokens += total;
+      }
     }
 
     if (req.timestamp) {

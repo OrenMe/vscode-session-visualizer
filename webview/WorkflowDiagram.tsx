@@ -140,6 +140,17 @@ function formatContextValue(value: unknown, depth = 0): string {
   return String(value);
 }
 
+/** Coerce unknown values to safe React-renderable strings — prevents URI objects crashing. */
+function safeRender(v: unknown): string {
+  if (v == null) return '';
+  if (typeof v === 'string') return v;
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+  if (typeof v === 'object') {
+    return (v as any).fsPath || (v as any).path || (v as any).value || JSON.stringify(v);
+  }
+  return String(v);
+}
+
 function DetailsModal({
   node,
   onClose,
@@ -208,12 +219,41 @@ function DetailsModal({
     if ((data.textEditGroupCount as number) > 0) addSection('textEditGroupCount', 'Edit Groups', `${data.textEditGroupCount}`);
     if (data.duration) addSection('duration', 'Duration', `${((data.duration as number) / 1000).toFixed(1)}s`);
 
+    // Token usage & multiplier
+    const usage = data.usage as Record<string, unknown> | undefined;
+    if (usage) {
+      const totalTokens = usage.totalTokens as number | undefined;
+      const promptTokens = usage.promptTokens as number | undefined;
+      const completionTokens = usage.completionTokens as number | undefined;
+      const maxInput = usage.maxInputTokens as number | undefined;
+      const maxOutput = usage.maxOutputTokens as number | undefined;
+      const multiplier = usage.multiplier as string | undefined;
+      const details = usage.details as string | undefined;
+      if (details) addSection(null, 'Model Details', details);
+      if (multiplier) addSection(null, 'Multiplier', multiplier);
+      if (totalTokens) addSection(null, 'Total Tokens', totalTokens.toLocaleString());
+      if (promptTokens) addSection(null, 'Prompt Tokens', promptTokens.toLocaleString());
+      if (completionTokens) addSection(null, 'Completion Tokens', completionTokens.toLocaleString());
+      if (maxInput) addSection(null, 'Max Input Tokens', maxInput.toLocaleString());
+      if (maxOutput) addSection(null, 'Max Output Tokens', maxOutput.toLocaleString());
+      if (promptTokens && maxInput) {
+        const pct = Math.round((promptTokens / maxInput) * 100);
+        addSection(null, 'Context Usage', `${pct}%`);
+      }
+      const promptTokenDetails = usage.promptTokenDetails as Array<{ category: string; label: string; percentageOfPrompt: number }> | undefined;
+      if (promptTokenDetails && promptTokenDetails.length > 0) {
+        addSection(null, 'Prompt Breakdown', promptTokenDetails.map(d => `${d.label}: ${d.percentageOfPrompt}%`).join(', '));
+      }
+    }
+    handledKeys.add('usage');
+
     if (data.vote !== undefined && data.vote !== null) {
       const voteLabel = (data.vote as number) === 1 ? '👍 Upvoted' : (data.vote as number) === -1 ? '👎 Downvoted' : `Vote: ${data.vote}`;
       addSection('vote', 'Vote', voteLabel);
       if (data.voteDownReason) addSection('voteDownReason', 'Downvote Reason', data.voteDownReason as string);
     }
     if ((data.contentReferencesCount as number) > 0) addSection('contentReferencesCount', 'Content References', `${data.contentReferencesCount}`);
+    handledKeys.add('contentReferences');
     if ((data.codeCitationsCount as number) > 0) addSection('codeCitationsCount', 'Code Citations', `${data.codeCitationsCount}`);
     if ((data.editedFileCount as number) > 0) addSection('editedFileCount', 'Edited Files', `${data.editedFileCount}`);
     if ((data.followupCount as number) > 0) addSection('followupCount', 'Follow-ups', `${data.followupCount}`);
@@ -252,17 +292,33 @@ function DetailsModal({
     if (data.isConfirmed !== undefined) addSection('isConfirmed', 'Confirmed', confirmedDisplay);
     
     if (data.toolCallId) addSection('toolCallId', 'Call ID', data.toolCallId as string);
+    if (data.generatedTitle) addSection('generatedTitle', 'Generated Title', data.generatedTitle as string);
+    if (data.presentation) addSection('presentation', 'Presentation', data.presentation as string);
 
     if (data.toolSpecificData) {
       handledKeys.add('toolSpecificData');
       const tsd = data.toolSpecificData as any;
       if (tsd.kind === 'terminal') {
         if (tsd.commandLine?.original) {
-          addSection(null, 'Command', <pre className="nowheel" style={{ margin: 0, padding: '4px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{tsd.commandLine.original}</pre>);
+          addSection(null, 'Command', <pre className="nowheel" style={{ margin: 0, padding: '4px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{safeRender(tsd.commandLine.original)}</pre>);
+        }
+        if (tsd.commandLine?.toolEdited && tsd.commandLine.toolEdited !== tsd.commandLine.original) {
+          addSection(null, 'Edited Command', <pre className="nowheel" style={{ margin: 0, padding: '4px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{safeRender(tsd.commandLine.toolEdited)}</pre>);
+        }
+        if (tsd.cwd) {
+          addSection(null, 'Working Directory', safeRender(tsd.cwd));
         }
         if (tsd.terminalCommandState) {
           const { exitCode, duration } = tsd.terminalCommandState;
-          addSection(null, 'Terminal State', `Exit Code: ${exitCode} ${duration ? `(${Math.round(duration / 1000)}s)` : ''}`);
+          addSection(null, 'Exit Code', exitCode !== undefined ? String(exitCode) : '—');
+          if (duration !== undefined) addSection(null, 'Duration', `${(duration / 1000).toFixed(1)}s`);
+        }
+        if (tsd.terminalCommandOutput?.text) {
+          const lineCount = tsd.terminalCommandOutput.lineCount;
+          addSection(null, lineCount ? `Terminal Output (${lineCount} lines)` : 'Terminal Output', <pre className="nowheel" style={{ margin: 0, padding: '4px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '200px', overflow: 'auto', fontFamily: 'monospace', fontSize: '11px' }}>{safeRender(tsd.terminalCommandOutput.text)}</pre>);
+        }
+        if (tsd.autoApproveInfo?.value) {
+          addSection(null, 'Auto-Approve', safeRender(tsd.autoApproveInfo.value));
         }
       } else if (tsd.kind === 'todoList' && tsd.todoList) {
         addSection(null, 'Todo List', (
@@ -276,6 +332,11 @@ function DetailsModal({
         ));
       } else if (tsd.kind === 'input' && tsd.rawInput) {
         addSection(null, 'Raw Input', <pre className="nowheel" style={{ margin: 0, padding: '4px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '150px', overflow: 'auto' }}>{JSON.stringify(tsd.rawInput, null, 2)}</pre>);
+      } else if (tsd.kind === 'subagent') {
+        if (tsd.agentName) addSection(null, 'Sub-Agent', tsd.agentName);
+        if (tsd.description) addSection(null, 'Description', tsd.description);
+        if (tsd.prompt) addSection(null, 'Prompt', <pre className="nowheel" style={{ margin: 0, padding: '4px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: '200px', overflow: 'auto', fontFamily: 'inherit' }}>{tsd.prompt}</pre>);
+        if (tsd.result) addSection(null, 'Result', <pre className="nowheel" style={{ margin: 0, padding: '4px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: '200px', overflow: 'auto', fontFamily: 'inherit' }}>{tsd.result}</pre>);
       }
     }
 
@@ -408,7 +469,9 @@ function DetailsModal({
                     {s.label !== '---' ? s.label : ''}
                   </td>
                   <td style={{ padding: '8px 0', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
-                    {s.value}
+                    {typeof s.value === 'object' && s.value !== null && !React.isValidElement(s.value)
+                      ? JSON.stringify(s.value)
+                      : s.value}
                   </td>
                 </tr>
               ))}

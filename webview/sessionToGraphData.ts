@@ -1,3 +1,9 @@
+// @deprecated — This module is replaced by:
+//   - src/irBuilder.ts (host-side: ISerializableChatData → SessionGraph IR)
+//   - webview/irToGraphData.ts (webview-side: SessionGraph → React Flow nodes/edges)
+// Kept for backward compatibility with the legacy `setSessionData` message.
+// Remove once the streaming pipeline is stable.
+
 // Graph data model: main spine of user→agent nodes, with expandable children
 
 export interface ChildNodeData {
@@ -141,6 +147,16 @@ function renderMessagePartsToString(message: unknown): string | undefined {
     }).join('');
   }
   return JSON.stringify(message);
+}
+
+/** Normalize toolSpecificData — handles cwd being a URI object instead of a string */
+function normalizeToolSpecificData(tsd: ResponsePart['toolSpecificData']): ResponsePart['toolSpecificData'] {
+  if (!tsd) return tsd;
+  const result = { ...tsd };
+  if (result.cwd && typeof result.cwd === 'object') {
+    result.cwd = (result.cwd as any).fsPath || (result.cwd as any).path || JSON.stringify(result.cwd);
+  }
+  return result;
 }
 
 function wordCount(text: string): number {
@@ -386,7 +402,7 @@ export function sessionToGraphData(session: SessionData): {
                 sourceLabel: canonical.source?.label || '',
                 isMcp: canonical.source?.type === 'mcp',
                 uris: getUris(canonical.invocationMessage),
-                toolSpecificData: canonical.toolSpecificData,
+                toolSpecificData: canonical.toolSpecificData ? normalizeToolSpecificData(canonical.toolSpecificData) : undefined,
                 resultDetails: canonical.resultDetails,
                 generatedTitle: canonical.generatedTitle,
                 presentation: canonical.presentation,

@@ -20,7 +20,16 @@ interface AgentResponseNodeData {
   childNodes?: unknown[];
   renderedUserMessage?: string;
   renderedGlobalContext?: string;
-  usage?: { totalTokens?: number; promptTokens?: number; completionTokens?: number };
+  usage?: {
+    totalTokens?: number;
+    promptTokens?: number;
+    completionTokens?: number;
+    promptTokenDetails?: Array<{ category: string; label: string; percentageOfPrompt: number }>;
+    maxInputTokens?: number;
+    maxOutputTokens?: number;
+    multiplier?: string;
+    details?: string;
+  };
   onShowDetails?: () => void;
 }
 
@@ -143,12 +152,51 @@ export function AgentResponseNode({ data }: { data: AgentResponseNodeData }) {
           )}
         </div>
       )}
-      {data.usage && (
-        <div style={{ fontSize: '9px', opacity: 0.6, marginTop: '4px', display: 'flex', gap: '6px' }}>
-          <span>Tokens: {data.usage.totalTokens?.toLocaleString() || '?'}</span>
-          <span>(P: {data.usage.promptTokens?.toLocaleString() || '?'}, C: {data.usage.completionTokens?.toLocaleString() || '?'})</span>
-        </div>
-      )}
+      {data.usage && (() => {
+        const u = data.usage!;
+        const hasTokens = !!(u.promptTokens || u.completionTokens || u.totalTokens);
+        const prompt = u.promptTokens || 0;
+        const completion = u.completionTokens || 0;
+        const total = u.totalTokens || (prompt + completion);
+        const promptPct = total > 0 ? Math.round((prompt / total) * 100) : 0;
+        const ctxPct = (prompt && u.maxInputTokens) ? Math.round((prompt / u.maxInputTokens) * 100) : undefined;
+        const ctxColor = ctxPct !== undefined ? (ctxPct > 90 ? '#f85149' : ctxPct > 70 ? '#d29922' : '#2ea043') : undefined;
+        if (!hasTokens && !u.multiplier) return null;
+        return (
+          <div style={{ marginTop: '4px' }}>
+            {hasTokens && (
+              <div style={{ display: 'flex', height: '4px', borderRadius: '2px', overflow: 'hidden', marginBottom: '3px' }}>
+                <div style={{ width: `${promptPct}%`, background: '#2ea04390' }} title={`Prompt: ${prompt.toLocaleString()}`} />
+                <div style={{ width: `${100 - promptPct}%`, background: 'rgba(80,140,220,0.65)' }} title={`Completion: ${completion.toLocaleString()}`} />
+              </div>
+            )}
+            <div style={{ fontSize: '9px', opacity: 0.6, display: 'flex', gap: '4px', alignItems: 'center', flexWrap: 'wrap' }}>
+              {hasTokens && <span title="Total tokens">{total.toLocaleString()} tok</span>}
+              {hasTokens && prompt > 0 && <span style={{ opacity: 0.5 }} title="Prompt tokens">P:{prompt.toLocaleString()}</span>}
+              {hasTokens && completion > 0 && <span style={{ opacity: 0.5 }} title="Completion tokens">C:{completion.toLocaleString()}</span>}
+              {ctxPct !== undefined && (
+                <span style={{ background: `${ctxColor}30`, color: ctxColor, padding: '0 3px', borderRadius: '2px', fontSize: '8px' }} title={`${prompt.toLocaleString()} / ${u.maxInputTokens!.toLocaleString()} max input tokens`}>
+                  ctx {ctxPct}%
+                </span>
+              )}
+              {u.multiplier && (
+                <span style={{ background: 'rgba(200,200,200,0.15)', padding: '0 3px', borderRadius: '2px', fontSize: '8px' }}>
+                  {u.multiplier}
+                </span>
+              )}
+            </div>
+            {u.promptTokenDetails && u.promptTokenDetails.length > 0 && (
+              <div style={{ fontSize: '8px', opacity: 0.5, marginTop: '2px', display: 'flex', gap: '3px', flexWrap: 'wrap' }}>
+                {u.promptTokenDetails.map((d, i) => (
+                  <span key={i} style={{ background: 'rgba(255,255,255,0.06)', padding: '0 3px', borderRadius: '2px' }} title={d.category}>
+                    {d.label}: {d.percentageOfPrompt}%
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
       {data.errorMessage && (
         <div style={{ fontSize: '9px', color: '#f85149', marginTop: '4px' }}>
           ⚠ {data.errorMessage.slice(0, 80)}

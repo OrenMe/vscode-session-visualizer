@@ -31,8 +31,19 @@ interface ToolInvocationNodeData {
   onShowDetails?: () => void;
 }
 
+/** Safely coerce any value to a string for rendering — prevents URI objects crashing React. */
+function safeStr(v: unknown): string {
+  if (v == null) return '';
+  if (typeof v === 'string') return v;
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+  if (typeof v === 'object') {
+    return (v as any).fsPath || (v as any).path || (v as any).value || JSON.stringify(v);
+  }
+  return String(v);
+}
+
 export function ToolInvocationNode({ data }: { data: ToolInvocationNodeData }) {
-  const displayMsg = data.generatedTitle || data.pastTenseMessage || data.invocationMessage;
+  const displayMsg = safeStr(data.generatedTitle || data.pastTenseMessage || data.invocationMessage);
   const isMcp = data.isMcp || data.sourceType === 'mcp';
   const borderColor = isMcp ? '#2db8a8' : 'var(--vscode-charts-purple, #8957e5)';
   const bgColor = isMcp ? 'rgba(45, 184, 168, 0.15)' : 'rgba(137, 87, 229, 0.15)';
@@ -40,12 +51,13 @@ export function ToolInvocationNode({ data }: { data: ToolInvocationNodeData }) {
 
   // Extract short filename/path from URI for display
   const uriLabels = (data.uris || []).map(u => {
+    const s = typeof u === 'string' ? u : (u as any)?.fsPath || (u as any)?.path || String(u);
     try {
-      const decoded = decodeURIComponent(u);
+      const decoded = decodeURIComponent(s);
       const parts = decoded.split('/');
       return parts.slice(-2).join('/');
     } catch {
-      return u.slice(u.lastIndexOf('/') + 1);
+      return s.slice(s.lastIndexOf('/') + 1);
     }
   });
 
@@ -53,26 +65,19 @@ export function ToolInvocationNode({ data }: { data: ToolInvocationNodeData }) {
     if (!data.toolSpecificData) return null;
 
     if (data.toolSpecificData.kind === 'terminal') {
-      const cmd = data.toolSpecificData.commandLine?.original || '';
+      const cmd = safeStr(data.toolSpecificData.commandLine?.original || '');
       const exitCode = data.toolSpecificData.terminalCommandState?.exitCode;
       const duration = data.toolSpecificData.terminalCommandState?.duration;
-      const output = data.toolSpecificData.terminalCommandOutput?.text;
-      const autoApprove = data.toolSpecificData.autoApproveInfo?.value;
-      
+      const output = safeStr(data.toolSpecificData.terminalCommandOutput?.text);
       return (
-        <div style={{ marginTop: '4px', padding: '4px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', fontSize: '9px', fontFamily: 'monospace' }}>
-          <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>$ {cmd}</div>
-          {autoApprove && (
-            <div style={{ color: '#a78bfa', marginTop: '2px', fontSize: '8px' }}>
-              ⚡ {autoApprove}
-            </div>
-          )}
+        <div style={{ marginTop: '4px', padding: '4px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', fontSize: '9px', fontFamily: 'monospace', overflow: 'hidden' }}>
+          <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>$ {cmd}</div>
           {exitCode !== undefined && (
             <div style={{ color: exitCode === 0 ? '#4ade80' : '#f87171', marginTop: '2px' }}>
               Exit: {exitCode} {duration ? `(${Math.round(duration / 1000)}s)` : ''}
             </div>
           )}
-          {output && (
+          {!!output && (
             <div className="nowheel" style={{ 
               marginTop: '4px', 
               padding: '4px', 
@@ -80,7 +85,9 @@ export function ToolInvocationNode({ data }: { data: ToolInvocationNodeData }) {
               borderRadius: '2px',
               maxHeight: '60px',
               overflowY: 'auto',
+              overflowX: 'hidden',
               whiteSpace: 'pre-wrap',
+              wordBreak: 'break-all',
               color: '#d1d5db'
             }}>
               {output}
@@ -109,6 +116,16 @@ export function ToolInvocationNode({ data }: { data: ToolInvocationNodeData }) {
       );
     }
 
+    if (data.toolSpecificData.kind === 'subagent') {
+      const sd = data.toolSpecificData as any;
+      return (
+        <div style={{ marginTop: '4px', fontSize: '9px', opacity: 0.8 }}>
+          {sd.agentName && <div>🤖 {safeStr(sd.agentName)}</div>}
+          {sd.description && <div style={{ opacity: 0.6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{safeStr(sd.description)}</div>}
+        </div>
+      );
+    }
+
     return null;
   };
 
@@ -122,6 +139,7 @@ export function ToolInvocationNode({ data }: { data: ToolInvocationNodeData }) {
         color: 'var(--vscode-editor-foreground, #fff)',
         minWidth: '180px',
         maxWidth: '280px',
+        overflow: 'hidden',
         position: 'relative',
       }}
     >
@@ -146,7 +164,7 @@ export function ToolInvocationNode({ data }: { data: ToolInvocationNodeData }) {
       )}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px', paddingRight: '16px' }}>
         <div style={{ fontWeight: 'bold', fontSize: '11px' }}>
-          {icon} {data.toolId}
+          {icon} {safeStr(data.toolId)}
         </div>
         {(isMcp || data.sourceLabel) && (
           <span style={{
@@ -156,7 +174,7 @@ export function ToolInvocationNode({ data }: { data: ToolInvocationNodeData }) {
             background: isMcp ? 'rgba(45,184,168,0.3)' : 'rgba(255,255,255,0.1)',
             opacity: 0.9,
           }}>
-            {isMcp ? '⚡ MCP' : data.sourceLabel || data.sourceType}
+            {isMcp ? '⚡ MCP' : safeStr(data.sourceLabel || data.sourceType)}
           </span>
         )}
       </div>
@@ -178,6 +196,23 @@ export function ToolInvocationNode({ data }: { data: ToolInvocationNodeData }) {
       {data.resultDetails?.isError && (
         <div style={{ color: '#f87171', fontSize: '9px', marginTop: '2px' }}>⚠️ Tool Error</div>
       )}
+      {data.resultDetails?.output && data.resultDetails.output.length > 0 && !data.resultDetails.isError && (() => {
+        const outputStr = data.resultDetails!.output!.map((o: any) => typeof o.value === 'string' ? o.value : JSON.stringify(o.value ?? '')).join('');
+        if (!outputStr) return null;
+        return (
+          <div style={{ fontSize: '9px', opacity: 0.6, marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            📤 {outputStr.slice(0, 60)}{outputStr.length > 60 ? '…' : ''}
+          </div>
+        );
+      })()}
+      {data.resultDetails?.input && (() => {
+        const inputStr = typeof data.resultDetails!.input === 'string' ? data.resultDetails!.input : JSON.stringify(data.resultDetails!.input);
+        return (
+          <div style={{ fontSize: '9px', opacity: 0.5, marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            📥 {inputStr.slice(0, 60)}{inputStr.length > 60 ? '…' : ''}
+          </div>
+        );
+      })()}
       {uriLabels.length > 0 && (
         <div style={{ marginTop: '3px' }}>
           {uriLabels.slice(0, 2).map((u, i) => (

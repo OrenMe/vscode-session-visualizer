@@ -1,5 +1,14 @@
 // Mirrored from VS Code internal chat types
 
+export interface SelectedModelMetadata {
+  maxInputTokens?: number;
+  maxOutputTokens?: number;
+  multiplier?: string;
+  name?: string;
+  id?: string;
+  family?: string;
+}
+
 export interface ISerializableChatData {
   version: number;
   sessionId: string;
@@ -11,7 +20,13 @@ export interface ISerializableChatData {
   hasPendingEdits?: boolean;
   repoData?: unknown;
   pendingRequests?: unknown[];
-  inputState?: unknown;
+  inputState?: {
+    selectedModel?: {
+      identifier?: string;
+      metadata?: SelectedModelMetadata;
+    };
+    [key: string]: unknown;
+  };
 }
 
 export interface ISerializableChatRequestData {
@@ -36,7 +51,7 @@ export interface ISerializableChatRequestData {
   contentReferences?: unknown[];
   codeCitations?: unknown[];
   timeSpentWaiting?: number;
-  usage?: { totalTokens?: number; promptTokens?: number; completionTokens?: number };
+  usage?: { totalTokens?: number; promptTokens?: number; completionTokens?: number; promptTokenDetails?: PromptTokenDetailRaw[] };
 }
 
 export interface IChatRequestVariableData {
@@ -49,12 +64,25 @@ export interface ISerializableChatAgentData {
   agentId?: string;
 }
 
+export interface PromptTokenDetailRaw {
+  category: string;
+  label: string;
+  percentageOfPrompt: number;
+}
+
 export interface IChatAgentResult {
   errorDetails?: { message?: string };
+  // usage and details live directly on result (not under metadata)
+  usage?: {
+    totalTokens?: number;
+    promptTokens?: number;
+    completionTokens?: number;
+    promptTokenDetails?: PromptTokenDetailRaw[];
+  };
+  details?: string;
   metadata?: {
     renderedUserMessage?: string;
     renderedGlobalContext?: string;
-    usage?: { totalTokens?: number; promptTokens?: number; completionTokens?: number };
     [key: string]: unknown;
   };
   timings?: { firstProgress?: number; totalElapsed?: number };

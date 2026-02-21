@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { ChatSessionItem } from './treeView';
-import { loadFullSession } from './sessionLoader';
+import { loadFullSession, loadSessionAsGraph } from './sessionLoader';
+import { SessionGraph, TurnNode } from './sessionIR';
+import { buildSessionGraph } from './irBuilder';
 
 export async function openDiagramPanel(
   context: vscode.ExtensionContext,
@@ -69,11 +71,14 @@ export async function openDiagramPanel(
 </html>`;
 
   // Send session data to the webview once it's ready
+  // Build the IR SessionGraph and send it (new pipeline)
+  const sessionGraph = buildSessionGraph(session);
+
   // Use a small delay to ensure the webview script has loaded
   setTimeout(() => {
     panel.webview.postMessage({
-      type: 'setSessionData',
-      data: session,
+      type: 'setSessionGraph',
+      data: sessionGraph,
     });
   }, 500);
 
@@ -81,8 +86,8 @@ export async function openDiagramPanel(
     async (message) => {
       if (message.type === 'ready') {
         panel.webview.postMessage({
-          type: 'setSessionData',
-          data: session,
+          type: 'setSessionGraph',
+          data: sessionGraph,
         });
       } else if (message.command === 'showDiff') {
         const uri = message.uri || 'Unknown File';
