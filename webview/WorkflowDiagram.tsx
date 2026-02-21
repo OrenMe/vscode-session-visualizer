@@ -61,7 +61,7 @@ function buildVisibleGraph(
 
     if (isExpanded && children && children.length > 0) {
       const parentY = positioned.position.y;
-      const childStartY = parentY - ((children.length - 1) * CHILD_Y_GAP) / 2;
+      const childStartY = parentY;
 
       for (let ci = 0; ci < children.length; ci++) {
         const child = children[ci];
@@ -89,7 +89,7 @@ function buildVisibleGraph(
         if (child.type === 'subAgent' && expandedSet.has(child.id)) {
           const subChildren = child.data.childNodes as ChildNodeData[] | undefined;
           if (subChildren && subChildren.length > 0) {
-            const subChildStartY = childY - ((subChildren.length - 1) * CHILD_Y_GAP) / 2;
+            const subChildStartY = childY;
             for (let sci = 0; sci < subChildren.length; sci++) {
               const subChild = subChildren[sci];
               nodes.push({
