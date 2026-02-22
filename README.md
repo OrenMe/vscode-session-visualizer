@@ -1,6 +1,11 @@
-# Chat Session Workflow Viewer
+<p align="center">
+  <img src="images/icon.png" alt="Chat Session Workflow Viewer" width="128" />
+</p>
 
-> Visualize VS Code chat session workflows as interactive diagrams.
+<h1 align="center">Chat Session Workflow Viewer</h1>
+
+<p align="center"><strong>Visualize VS Code chat session workflows as interactive diagrams.</strong></p>
+
 
 Turn your Copilot Chat sessions into clear, navigable workflow graphs — see every user prompt, LLM response, tool invocation, sub-agent call, and thinking block at a glance.
 
