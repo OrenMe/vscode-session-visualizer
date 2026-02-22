@@ -196,23 +196,6 @@ export function ToolInvocationNode({ data }: { data: ToolInvocationNodeData }) {
       {data.resultDetails?.isError && (
         <div style={{ color: '#f87171', fontSize: '9px', marginTop: '2px' }}>⚠️ Tool Error</div>
       )}
-      {data.resultDetails?.output && data.resultDetails.output.length > 0 && !data.resultDetails.isError && (() => {
-        const outputStr = data.resultDetails!.output!.map((o: any) => typeof o.value === 'string' ? o.value : JSON.stringify(o.value ?? '')).join('');
-        if (!outputStr) return null;
-        return (
-          <div style={{ fontSize: '9px', opacity: 0.6, marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            📤 {outputStr.slice(0, 60)}{outputStr.length > 60 ? '…' : ''}
-          </div>
-        );
-      })()}
-      {data.resultDetails?.input && (() => {
-        const inputStr = typeof data.resultDetails!.input === 'string' ? data.resultDetails!.input : JSON.stringify(data.resultDetails!.input);
-        return (
-          <div style={{ fontSize: '9px', opacity: 0.5, marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            📥 {inputStr.slice(0, 60)}{inputStr.length > 60 ? '…' : ''}
-          </div>
-        );
-      })()}
       {uriLabels.length > 0 && (
         <div style={{ marginTop: '3px' }}>
           {uriLabels.slice(0, 2).map((u, i) => (
