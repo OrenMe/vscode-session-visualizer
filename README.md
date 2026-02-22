@@ -4,6 +4,12 @@
 
 Turn your Copilot Chat sessions into clear, navigable workflow graphs — see every user prompt, LLM response, tool invocation, sub-agent call, and thinking block at a glance.
 
+<div align="center">
+
+https://github.com/OrenMe/vscode-session-visualizer/raw/main/extension_demo.mp4
+
+</div>
+
 ## Features
 
 - **Session Explorer** — browse all chat sessions from the activity bar, filter by workspace, and search by title or message content
