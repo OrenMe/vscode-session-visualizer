@@ -41,7 +41,7 @@
         {
           "id": "chatWorkflowExplorer",
           "title": "Chat Workflow Explorer",
-          "icon": "$(type-hierarchy)"
+          "icon": "images/icon.png"
         }
       ]
     },

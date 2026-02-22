@@ -15,7 +15,8 @@
     "declarationMap": true,
     "sourceMap": true,
     "jsx": "react-jsx",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "ignoreDeprecations": "6.0"
   },
   "include": ["src/**/*", "webview/**/*"],
   "exclude": ["node_modules", "dist"]
