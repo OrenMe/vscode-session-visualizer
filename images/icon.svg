@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0078d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#005a9e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="16" fill="url(#bg)"/>
+  <!-- Top node -->
+  <rect x="44" y="14" width="40" height="20" rx="4" fill="#ffffff" opacity="0.95"/>
+  <circle cx="64" cy="24" r="4" fill="#0078d4"/>
+  <!-- Middle-left node -->
+  <rect x="14" y="50" width="40" height="20" rx="4" fill="#ffffff" opacity="0.95"/>
+  <circle cx="34" cy="60" r="4" fill="#16825d"/>
+  <!-- Middle-right node -->
+  <rect x="74" y="50" width="40" height="20" rx="4" fill="#ffffff" opacity="0.95"/>
+  <circle cx="94" cy="60" r="4" fill="#c72e49"/>
+  <!-- Bottom node -->
+  <rect x="44" y="90" width="40" height="20" rx="4" fill="#ffffff" opacity="0.95"/>
+  <circle cx="64" cy="100" r="4" fill="#d48c00"/>
+  <!-- Edges -->
+  <line x1="54" y1="34" x2="34" y2="50" stroke="#ffffff" stroke-width="2" opacity="0.7"/>
+  <line x1="74" y1="34" x2="94" y2="50" stroke="#ffffff" stroke-width="2" opacity="0.7"/>
+  <line x1="34" y1="70" x2="54" y2="90" stroke="#ffffff" stroke-width="2" opacity="0.7"/>
+  <line x1="94" y1="70" x2="74" y2="90" stroke="#ffffff" stroke-width="2" opacity="0.7"/>
+</svg>

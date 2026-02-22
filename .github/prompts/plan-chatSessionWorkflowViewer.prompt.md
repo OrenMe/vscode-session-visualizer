@@ -20,7 +20,7 @@ The extension has three main components:
 
 #### Step 1: Initialize extension project
 
-Target VS Code `^1.96.0` (for modern webview and fs APIs).
+Target VS Code `^1.109.0` (for modern webview and fs APIs).
 
 **Project structure:**
 - TypeScript extension with `esbuild` bundler

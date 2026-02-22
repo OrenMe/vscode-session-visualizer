@@ -1,0 +1,14 @@
+.vscode/**
+.github/**
+src/**
+webview/**
+examples/**
+node_modules/**
+*.jsonl
+jsonlwithsubagentexample3
+*.vsix
+.gitignore
+tsconfig.json
+esbuild.mjs
+images/icon.svg
+**/*.map
