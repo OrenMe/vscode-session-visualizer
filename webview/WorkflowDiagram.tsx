@@ -3,7 +3,6 @@ import {
   ReactFlow,
   Background,
   Controls,
-  MiniMap,
   type Node,
   type Edge,
 } from '@xyflow/react';
@@ -555,10 +554,6 @@ export default function WorkflowDiagram({
       >
         <Background />
         <Controls />
-        <MiniMap
-          nodeStrokeWidth={3}
-          style={{ background: 'var(--vscode-editor-background, #1e1e1e)' }}
-        />
       </ReactFlow>
       {detailsModalNode && (
         <DetailsModal

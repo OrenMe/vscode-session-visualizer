@@ -27,9 +27,7 @@ body {
   background: var(--vscode-activityBar-background, #333);
 }
 
-.react-flow__minimap {
-  background: var(--background);
-}
+
 
 .react-flow__controls-button {
   background: var(--input-background, #3c3c3c);

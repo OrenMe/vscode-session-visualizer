@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Handle, Position } from '@xyflow/react';
 
 interface ThinkingNodeData {
@@ -12,7 +12,6 @@ interface ThinkingNodeData {
 }
 
 export function ThinkingNode({ data }: { data: ThinkingNodeData }) {
-  const [expanded, setExpanded] = useState(false);
   const fullText = data.fullText || data.text;
   const charCount = data.charCount || fullText.length;
   const wc = data.wordCount ?? (fullText.trim() ? fullText.trim().split(/\s+/).length : 0);
@@ -28,11 +27,9 @@ export function ThinkingNode({ data }: { data: ThinkingNodeData }) {
         background: 'rgba(139, 148, 158, 0.1)',
         color: 'var(--vscode-editor-foreground, #fff)',
         minWidth: '160px',
-        maxWidth: expanded ? '420px' : '260px',
-        cursor: 'pointer',
+        maxWidth: '260px',
         position: 'relative',
       }}
-      onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
     >
       {data.onShowDetails && (
         <button
@@ -55,7 +52,7 @@ export function ThinkingNode({ data }: { data: ThinkingNodeData }) {
       )}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px', paddingRight: '16px' }}>
         <span style={{ fontWeight: 'bold', fontSize: '11px' }}>
-          🧠 Thinking {expanded ? '▾' : '▸'}
+          🧠 Thinking
         </span>
         <span style={{ fontSize: '9px', opacity: 0.5 }}>
           {wc} words
@@ -74,35 +71,20 @@ export function ThinkingNode({ data }: { data: ThinkingNodeData }) {
           · {readLabel}
         </span>
       </div>
-      {expanded ? (
-        <div
-          className="nowheel"
-          style={{
-            fontSize: '10px',
-            lineHeight: '1.4',
-            whiteSpace: 'pre-wrap',
-            maxHeight: '320px',
-            overflow: 'auto',
-          }}
-        >
-          {fullText}
-        </div>
-      ) : (
-        <div
-          style={{
-            fontSize: '10px',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-            lineHeight: '1.4',
-            opacity: 0.7,
-          }}
-        >
-          {fullText.slice(0, 200)}
-        </div>
-      )}
+      <div
+        style={{
+          fontSize: '10px',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          display: '-webkit-box',
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: 'vertical',
+          lineHeight: '1.4',
+          opacity: 0.7,
+        }}
+      >
+        {fullText.slice(0, 200)}
+      </div>
       <Handle type="target" position={Position.Left} />
     </div>
   );
