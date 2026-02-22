@@ -11,7 +11,7 @@ Turn your Copilot Chat sessions into clear, navigable workflow graphs — see ev
 
 <div align="center">
 
-https://github.com/OrenMe/vscode-session-visualizer/raw/main/extension_demo.mp4
+https://github.com/user-attachments/assets/4e0ae17f-6464-466d-af67-d393c3e600e8
 
 </div>
 
